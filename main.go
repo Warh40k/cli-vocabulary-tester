@@ -13,7 +13,7 @@ import (
 var scanner *bufio.Scanner = bufio.NewScanner(os.Stdin)
 
 func main() {
-	fmt.Println("Welcome to Go vocabulary test utility. Please, select what to do next:\n1) Add definitions to database;\n2) Show current definitions.")
+	fmt.Println("Welcome to Go vocabulary test utility. Please, select what to do next:\n1 - add definitions to database;\n2 - show current definitions;\nq - exit")
 	scanner.Scan()
 	choice := scanner.Text()
 	switch choice {
@@ -21,9 +21,12 @@ func main() {
 		FillDb()
 	case "2":
 		ShowDb()
+	case "q":
+		return
 	default:
 		main()
 	}
+	main()
 }
 
 func ShowDb() {
