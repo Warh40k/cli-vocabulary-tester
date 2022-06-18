@@ -2,8 +2,12 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"fmt"
+	"log"
 	"os"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -13,8 +17,14 @@ func main() {
 }
 
 func FillDb() (dict map[string]string) {
+	//connecting database
+	vocabulary := make(map[string]string)
+	db, err := sql.Open("sqlite3", "./words.db")
+	if err != nil {
+		panic(err)
+	}
+
 	scanner := bufio.NewScanner(os.Stdin)
-	translations := make(map[string]string)
 	fmt.Println("Attempting to fill database with words")
 	for {
 		fmt.Println("Foreign word")
@@ -24,20 +34,38 @@ func FillDb() (dict map[string]string) {
 		fmt.Println("Translation")
 		scanner.Scan()
 		var transl string = scanner.Text()
+		if foreign == "" && transl == "" {
+			fmt.Println("Empty input, stop")
 
-		if foreign == "" || transl == "" {
-			fmt.Println("Empty input, ignored")
-			continue
-		} else if foreign == "stop" || transl == "stop" {
-			for f, t := range translations {
+			tx, err := db.Begin()
+			if err != nil {
+				log.Fatal(err)
+			}
+			stmt, err := tx.Prepare("INSERT INTO vocabulary(FOREIGN_WORD, TRANSLATION) VALUES(?,?)")
+			if err != nil {
+				log.Fatal(err)
+			}
+			for f, t := range vocabulary {
+				_, err = stmt.Exec(f, t)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+			tx.Commit()
+			db.Close()
+
+			for f, t := range vocabulary {
 				fmt.Printf("Foreign language %s with translation %s\n", f, t)
 			}
 			break
+		} else if foreign == "" || transl == "" {
+			fmt.Println("One field is empty, ignore")
+			continue
 		}
-		translations[foreign] = transl
+		vocabulary[foreign] = transl
 	}
 
-	return translations
+	return vocabulary
 }
 
 func GetKeys(dict map[string]string) (keys []string) {
