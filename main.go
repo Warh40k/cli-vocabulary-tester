@@ -7,11 +7,16 @@ import (
 )
 
 func main() {
+	fmt.Println("Welcome to Go vocabulary test utility. Please, select what to do next.")
+	translations := FillDb()
+	fmt.Println(translations)
+}
 
-	translations := make(map[string]string)
+func FillDb() (dict map[string]string) {
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println("Welcome to easy vocabulary test utility. Please, append some words with translations below.")
-	for true {
+	translations := make(map[string]string)
+	fmt.Println("Attempting to fill database with words")
+	for {
 		fmt.Println("Foreign word")
 		scanner.Scan()
 		var foreign string = scanner.Text()
@@ -32,8 +37,7 @@ func main() {
 		translations[foreign] = transl
 	}
 
-	fmt.Println(GetKeys(translations))
-
+	return translations
 }
 
 func GetKeys(dict map[string]string) (keys []string) {
