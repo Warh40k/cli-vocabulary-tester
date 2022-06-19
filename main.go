@@ -117,8 +117,15 @@ func Test() {
 	rand.Shuffle(len(keys), func(i, j int) {
 		keys[i], keys[j] = keys[j], keys[i]
 	})
-	fmt.Println(keys)
 
+	for i := 0; i < len(keys); i++ {
+		fmt.Println(keys[i])
+		scanner.Scan()
+		if scanner.Text() == "" {
+			break
+		}
+		fmt.Println(vocab[keys[i]])
+	}
 }
 
 //func checkErr(err error) {
