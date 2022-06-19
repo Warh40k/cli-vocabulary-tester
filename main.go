@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 
 	_ "github.com/mattn/go-sqlite3" // pass blank identifier the unused import error
@@ -13,7 +14,7 @@ import (
 var scanner *bufio.Scanner = bufio.NewScanner(os.Stdin)
 
 func main() {
-	fmt.Println("Welcome to Go vocabulary test utility. Please, select what to do next:\n1 - add definitions to database;\n2 - show current definitions;\nq - exit")
+	fmt.Println("Welcome to Go vocabulary test utility. Please, select what to do next:\n1 - add definitions to database;\n2 - show current definitions;\nempty line or 'q' - exit\n3 - test yourself")
 	scanner.Scan()
 	choice := scanner.Text()
 	switch choice {
@@ -21,29 +22,35 @@ func main() {
 		FillDb()
 	case "2":
 		ShowDb()
-	case "q":
+	case "3":
+		Test()
+	case "q", "":
 		return
 	default:
 		main()
 	}
 	main()
 }
-
-func ShowDb() {
+func GetData(query string) *sql.Rows {
 	db, err := sql.Open("sqlite3", "./words.db")
 	if err != nil {
 		panic(err)
 	}
-	res, err := db.Query("SELECT * FROM vocabulary")
+	res, err := db.Query(query)
 	if err != nil {
 		log.Panic(err)
 	}
+	db.Close()
+	return res
+}
+
+func ShowDb() {
+	res := GetData("SELECT * FROM vocabulary")
 	fmt.Println("Id\tForeign\tTranslation")
 	for res.Next() {
 		var id int
 		var foreign, translate string
-
-		err = res.Scan(&id, &foreign, &translate)
+		err := res.Scan(&id, &foreign, &translate)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -71,7 +78,6 @@ func FillDb() (dict map[string]string) {
 		// inserting words to db
 		if foreign == "" && transl == "" {
 			fmt.Println("Empty input, stop")
-
 			tx, err := db.Begin()
 			if err != nil {
 				log.Fatal(err)
@@ -98,6 +104,35 @@ func FillDb() (dict map[string]string) {
 	return vocabulary
 }
 
+func Test() {
+	res := GetData("SELECT ID, FOREIGN_WORD, TRANSLATION FROM vocabulary")
+	vocab := make(map[string]string)
+	for res.Next() {
+		var i int
+		var f, t string
+		res.Scan(&i, &f, &t)
+		vocab[f] = t
+	}
+	keys := GetKeys(vocab)
+	rand.Shuffle(len(keys), func(i, j int) {
+		keys[i], keys[j] = keys[j], keys[i]
+	})
+	fmt.Println(keys)
+
+}
+
+//func checkErr(err error) {
+//	if err != nil {
+//		panic(err)
+//	}
+//}
+//func checkCount(string ) (count int) {
+//	for rows.Next() {
+//		err := rows.Scan(&count)
+//		checkErr(err)
+//	}
+//	return count
+//}
 func GetKeys(dict map[string]string) (keys []string) {
 	keys = make([]string, int(len(dict)))
 	var i int = 0
