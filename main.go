@@ -14,7 +14,7 @@ import (
 var scanner *bufio.Scanner = bufio.NewScanner(os.Stdin)
 
 func main() {
-	fmt.Println("Welcome to Go vocabulary test utility. Please, select what to do next:\n1 - add definitions to database;\n2 - show current definitions;\nempty line or 'q' - exit\n3 - test yourself")
+	fmt.Println("Welcome to Go vocabulary test utility. Please, select what to do next:\n1 - add definitions to database;\n2 - show current definitions;\nempty line or 'q' - exit\n3 - test (from Foreign)\n4 - test (from native)")
 	scanner.Scan()
 	choice := scanner.Text()
 	switch choice {
@@ -23,7 +23,9 @@ func main() {
 	case "2":
 		ShowDb()
 	case "3":
-		Test()
+		Test(true)
+	case "4":
+		Test(false)
 	case "q", "":
 		return
 	default:
@@ -96,7 +98,7 @@ func FillDb() (dict map[string]string) {
 	return vocabulary
 }
 
-func Test() {
+func Test(foreign bool) {
 	res := GetData("SELECT ID, FOREIGN_WORD, TRANSLATION FROM vocabulary")
 	vocab := RowsToMap(res)
 	keys := GetKeys(vocab)
@@ -105,12 +107,16 @@ func Test() {
 	})
 
 	for i := 0; i < len(keys); i++ {
-		fmt.Println(keys[i])
+		var item = [2]string{keys[i], vocab[keys[i]]}
+		if foreign == false {
+			item[0], item[1] = item[1], item[0]
+		}
+		fmt.Println(item[0])
 		scanner.Scan()
 		if scanner.Text() == "" {
 			break
 		}
-		fmt.Println(vocab[keys[i]])
+		fmt.Println(item[1])
 	}
 }
 
