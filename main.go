@@ -51,9 +51,7 @@ func ShowDb() {
 		var id int
 		var foreign, translate string
 		err := res.Scan(&id, &foreign, &translate)
-		if err != nil {
-			log.Fatal(err)
-		}
+		checkErr(err)
 		fmt.Printf("%d\t%s\t%s\n", id, foreign, translate)
 	}
 }
@@ -79,18 +77,12 @@ func FillDb() (dict map[string]string) {
 		if foreign == "" && transl == "" {
 			fmt.Println("Empty input, stop")
 			tx, err := db.Begin()
-			if err != nil {
-				log.Fatal(err)
-			}
+			checkErr(err)
 			stmt, err := tx.Prepare("INSERT INTO vocabulary(FOREIGN_WORD, TRANSLATION) VALUES(?,?)")
-			if err != nil {
-				log.Fatal(err)
-			}
+			checkErr(err)
 			for f, t := range vocabulary {
 				_, err = stmt.Exec(f, t)
-				if err != nil {
-					log.Fatal(err)
-				}
+				checkErr(err)
 			}
 			tx.Commit()
 			db.Close()
@@ -133,11 +125,12 @@ func RowsToMap(rows *sql.Rows) map[string]string {
 	return vocab
 }
 
-//func checkErr(err error) {
-//	if err != nil {
-//		panic(err)
-//	}
-//}
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 //func checkCount(string ) (count int) {
 //	for rows.Next() {
 //		err := rows.Scan(&count)
