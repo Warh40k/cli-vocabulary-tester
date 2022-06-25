@@ -106,13 +106,7 @@ func FillDb() (dict map[string]string) {
 
 func Test() {
 	res := GetData("SELECT ID, FOREIGN_WORD, TRANSLATION FROM vocabulary")
-	vocab := make(map[string]string)
-	for res.Next() {
-		var i int
-		var f, t string
-		res.Scan(&i, &f, &t)
-		vocab[f] = t
-	}
+	vocab := RowsToMap(res)
 	keys := GetKeys(vocab)
 	rand.Shuffle(len(keys), func(i, j int) {
 		keys[i], keys[j] = keys[j], keys[i]
@@ -126,6 +120,17 @@ func Test() {
 		}
 		fmt.Println(vocab[keys[i]])
 	}
+}
+
+func RowsToMap(rows *sql.Rows) map[string]string {
+	vocab := make(map[string]string)
+	for rows.Next() {
+		var i int
+		var f, t string
+		rows.Scan(&i, &f, &t)
+		vocab[f] = t
+	}
+	return vocab
 }
 
 //func checkErr(err error) {
